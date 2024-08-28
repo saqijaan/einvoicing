@@ -1,16 +1,18 @@
 <?php
+
 namespace Einvoicing\Payments;
 
 use OutOfBoundsException;
 use function array_splice;
 use function count;
 
-class Payment {
+class Payment
+{
     protected $id = null;
     protected $meansCode = null;
     protected $meansText = null;
     protected $terms = null;
-    protected $transfers = [];
+    protected $transfer = null;
     protected $card = null;
     protected $mandate = null;
 
@@ -18,7 +20,8 @@ class Payment {
      * Get payment ID
      * @return string|null Payment ID
      */
-    public function getId(): ?string {
+    public function getId(): ?string
+    {
         return $this->id;
     }
 
@@ -28,7 +31,8 @@ class Payment {
      * @param  string|null $id Payment ID
      * @return self            Payment instance
      */
-    public function setId(?string $id): self {
+    public function setId(?string $id): self
+    {
         $this->id = $id;
         return $this;
     }
@@ -38,7 +42,8 @@ class Payment {
      * Get payment means code
      * @return string|null Payment means code
      */
-    public function getMeansCode(): ?string {
+    public function getMeansCode(): ?string
+    {
         return $this->meansCode;
     }
 
@@ -48,7 +53,8 @@ class Payment {
      * @param  string $meansCode Payment means code
      * @return self              Payment instance
      */
-    public function setMeansCode(string $meansCode): self {
+    public function setMeansCode(string $meansCode): self
+    {
         $this->meansCode = $meansCode;
         return $this;
     }
@@ -58,7 +64,8 @@ class Payment {
      * Get payment means text
      * @return string|null Payment means text
      */
-    public function getMeansText(): ?string {
+    public function getMeansText(): ?string
+    {
         return $this->meansText;
     }
 
@@ -68,7 +75,8 @@ class Payment {
      * @param  string|null $meansText Payment means text
      * @return self                   Payment instance
      */
-    public function setMeansText(?string $meansText): self {
+    public function setMeansText(?string $meansText): self
+    {
         $this->meansText = $meansText;
         return $this;
     }
@@ -78,7 +86,8 @@ class Payment {
      * Get payment terms
      * @return string|null Payment terms
      */
-    public function getTerms(): ?string {
+    public function getTerms(): ?string
+    {
         return $this->terms;
     }
 
@@ -88,28 +97,31 @@ class Payment {
      * @param  string|null $terms Payment terms
      * @return self               Payment instance
      */
-    public function setTerms(?string $terms): self {
+    public function setTerms(?string $terms): self
+    {
         $this->terms = $terms;
         return $this;
     }
 
 
     /**
-     * Get payment transfers
-     * @return Transfer[] Array of transfers
+     * Get payment transfer
+     * @return Transfer
      */
-    public function getTransfers(): array {
-        return $this->transfers;
+    public function getTransfer(): ?Transfer
+    {
+        return $this->transfer;
     }
 
 
     /**
-     * Add payment transfers
+     * Add payment transfer
      * @param  Transfer $transfer Transfer instance
      * @return self               Payment instance
      */
-    public function addTransfer(Transfer $transfer): self {
-        $this->transfers[] = $transfer;
+    public function addTransfer(Transfer $transfer): self
+    {
+        $this->transfer = $transfer;
         return $this;
     }
 
@@ -120,11 +132,9 @@ class Payment {
      * @return self        Payment instance
      * @throws OutOfBoundsException if transfer index is out of bounds
      */
-    public function removeTransfer(int $index): self {
-        if ($index < 0 || $index >= count($this->transfers)) {
-            throw new OutOfBoundsException('Could not find transfer by index');
-        }
-        array_splice($this->transfers, $index, 1);
+    public function removeTransfer(): self
+    {
+        $this->transfer = null;
         return $this;
     }
 
@@ -133,8 +143,9 @@ class Payment {
      * Clear all payment transfers
      * @return self Payment instance
      */
-    public function clearTransfers(): self {
-        $this->transfers = [];
+    public function clearTransfers(): self
+    {
+        $this->transfer = null;
         return $this;
     }
 
@@ -143,7 +154,8 @@ class Payment {
      * Get payment card
      * @return Card|null Card instance
      */
-    public function getCard(): ?Card {
+    public function getCard(): ?Card
+    {
         return $this->card;
     }
 
@@ -153,7 +165,8 @@ class Payment {
      * @param  Card|null $card Card instance
      * @return self            Payment instance
      */
-    public function setCard(?Card $card): self {
+    public function setCard(?Card $card): self
+    {
         $this->card = $card;
         return $this;
     }
@@ -163,7 +176,8 @@ class Payment {
      * Get payment mandate
      * @return Mandate|null Mandate instance
      */
-    public function getMandate(): ?Mandate {
+    public function getMandate(): ?Mandate
+    {
         return $this->mandate;
     }
 
@@ -173,7 +187,8 @@ class Payment {
      * @param  Mandate|null $mandate Mandate instance
      * @return self                  Payment instance
      */
-    public function setMandate(?Mandate $mandate): self {
+    public function setMandate(?Mandate $mandate): self
+    {
         $this->mandate = $mandate;
         return $this;
     }

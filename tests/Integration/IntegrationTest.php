@@ -1,4 +1,5 @@
 <?php
+
 namespace Tests\Integration;
 
 use DOMDocument;
@@ -8,19 +9,22 @@ use PHPUnit\Framework\TestCase;
 use const LIBXML_NOERROR;
 use function file_get_contents;
 
-final class IntegrationTest extends TestCase {
+final class IntegrationTest extends TestCase
+{
     /** @var UblReader */
     private $reader;
 
     /** @var UblWriter */
     private $writer;
 
-    protected function setUp(): void {
+    protected function setUp(): void
+    {
         $this->reader = new UblReader();
         $this->writer = new UblWriter();
     }
 
-    protected function normalize(string $xml): string {
+    protected function normalize(string $xml): string
+    {
         // Normalize input document
         $doc = new DOMDocument();
         $doc->preserveWhiteSpace = false;
@@ -35,10 +39,13 @@ final class IntegrationTest extends TestCase {
         return $doc->saveXML();
     }
 
-    protected function importAndExportInvoice(string $xmlPath): void {
+    protected function importAndExportInvoice(string $xmlPath): void
+    {
         $inputXml = file_get_contents($xmlPath);
         $invoice = $this->reader->import($inputXml);
         $outputXml = $this->writer->export($invoice);
+
+        file_put_contents(__DIR__ . "/output.xml", $outputXml);
 
         $this->assertEquals(
             $this->normalize($inputXml),
@@ -46,31 +53,43 @@ final class IntegrationTest extends TestCase {
         );
     }
 
-    public function testCanRecreatePeppolBaseExample(): void {
+    public function testCanRecreatePeppolBaseExample(): void
+    {
         $this->importAndExportInvoice(__DIR__ . "/peppol-base.xml");
     }
 
-    public function testCanRecreatePeppolCreditNoteExample(): void {
+    public function testCanRecreatePeppolCreditNoteExample(): void
+    {
         $this->importAndExportInvoice(__DIR__ . "/peppol-credit-note.xml");
     }
 
-    public function testCanRecreatePeppolVatExample(): void {
+    public function testCanRecreatePeppolVatExample(): void
+    {
         $this->importAndExportInvoice(__DIR__ . "/peppol-vat-s.xml");
     }
 
-    public function testCanRecreatePeppolOptionalVatExample(): void {
+    public function testCanRecreatePeppolOptionalVatExample(): void
+    {
         $this->importAndExportInvoice(__DIR__ . "/peppol-vat-o.xml");
     }
 
-    public function testCanRecreatePeppolAllowanceExample(): void {
+    public function testCanRecreatePeppolAllowanceExample(): void
+    {
         $this->importAndExportInvoice(__DIR__ . "/peppol-allowance.xml");
     }
 
-    public function testCanRecreatePeppolRoundingExample(): void {
+    public function testCanRecreatePeppolRoundingExample(): void
+    {
         $this->importAndExportInvoice(__DIR__ . "/peppol-rounding.xml");
     }
 
-    public function testCanRecreateCiusRoTaxCurrencyCodeExample(): void {
+    public function testCanRecreateCiusRoTaxCurrencyCodeExample(): void
+    {
         $this->importAndExportInvoice(__DIR__ . "/cius-ro-tax-currency-code.xml");
+    }
+
+    public function testCanImportMultiplePaymentMeans(): void
+    {
+        $this->importAndExportInvoice(__DIR__ . "/peppol-multiple-payment-means.xml");
     }
 }

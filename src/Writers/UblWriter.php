@@ -1,4 +1,5 @@
 <?php
+
 namespace Einvoicing\Writers;
 
 use DateTime;
@@ -17,7 +18,8 @@ use Einvoicing\Payments\Transfer;
 use UXML\UXML;
 use function in_array;
 
-class UblWriter extends AbstractWriter {
+class UblWriter extends AbstractWriter
+{
     const NS_INVOICE = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
     const NS_CREDIT_NOTE = "urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2";
     const NS_CAC = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
@@ -26,7 +28,8 @@ class UblWriter extends AbstractWriter {
     /**
      * @inheritdoc
      */
-    public function export(Invoice $invoice): string {
+    public function export(Invoice $invoice): string
+    {
         $totals = $invoice->getTotals();
         $isCreditNoteProfile = $this->isCreditNoteProfile($invoice);
 
@@ -166,9 +169,12 @@ class UblWriter extends AbstractWriter {
         }
 
         // Payment nodes
-        $payment = $invoice->getPayment();
-        if ($payment !== null) {
-            $this->addPaymentNodes($xml, $payment, $isCreditNoteProfile ? $dueDate : null);
+        $payments = $invoice->getPayment();
+
+        if (count($payments) > 0) {
+            foreach ($payments as $payment) {
+                $this->addPaymentNodes($xml, $payment, $isCreditNoteProfile ? $dueDate : null);
+            }
         }
 
         // Allowances and charges
@@ -206,7 +212,8 @@ class UblWriter extends AbstractWriter {
      * @param  Invoice $invoice Invoice invoice
      * @return boolean          Whether document should use invoice or credit note profiles
      */
-    private function isCreditNoteProfile(Invoice $invoice): bool {
+    private function isCreditNoteProfile(Invoice $invoice): bool
+    {
         $type = $invoice->getType();
         return in_array($type, [
             Invoice::TYPE_CREDIT_NOTE_RELATED_TO_GOODS_OR_SERVICES,
@@ -225,7 +232,8 @@ class UblWriter extends AbstractWriter {
      * @param Identifier $identifier Identifier instance
      * @param string     $schemeAttr Scheme attribute name
      */
-    private function addIdentifierNode(UXML $parent, string $name, Identifier $identifier, string $schemeAttr="schemeID") {
+    private function addIdentifierNode(UXML $parent, string $name, Identifier $identifier, string $schemeAttr = "schemeID")
+    {
         $scheme = $identifier->getScheme();
         $attrs = ($scheme === null) ? [] : ["$schemeAttr" => $scheme];
         $parent->add($name, $identifier->getValue(), $attrs);
@@ -237,7 +245,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML                $parent Parent element
      * @param Invoice|InvoiceLine $source Source instance
      */
-    private function addPeriodNode(UXML $parent, $source) {
+    private function addPeriodNode(UXML $parent, $source)
+    {
         $startDate = $source->getPeriodStartDate();
         $endDate = $source->getPeriodEndDate();
         if ($startDate === null && $endDate === null) return;
@@ -261,7 +270,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML    $parent  Parent element
      * @param Invoice $invoice Invoice instance
      */
-    private function addOrderReferenceNode(UXML $parent, Invoice $invoice) {
+    private function addOrderReferenceNode(UXML $parent, Invoice $invoice)
+    {
         $purchaseOrderReference = $invoice->getPurchaseOrderReference();
         $salesOrderReference = $invoice->getSalesOrderReference();
         if ($purchaseOrderReference === null && $salesOrderReference === null) return;
@@ -285,7 +295,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML    $parent  Parent element
      * @param Invoice $invoice Invoice instance
      */
-    private function addTenderOrLotReferenceNode(UXML $parent, Invoice $invoice) {
+    private function addTenderOrLotReferenceNode(UXML $parent, Invoice $invoice)
+    {
         $tenderOrLotReference = $invoice->getTenderOrLotReference();
         if ($tenderOrLotReference !== null) {
             $parent->add('cac:OriginatorDocumentReference')->add('cbc:ID', $tenderOrLotReference);
@@ -300,7 +311,8 @@ class UblWriter extends AbstractWriter {
      * @param float  $amount   Amount
      * @param string $currency Currency code
      */
-    private function addAmountNode(UXML $parent, string $name, float $amount, string $currency) {
+    private function addAmountNode(UXML $parent, string $name, float $amount, string $currency)
+    {
         $parent->add($name, (string) $amount, ['currencyID' => $currency]);
     }
 
@@ -315,8 +327,12 @@ class UblWriter extends AbstractWriter {
      * @param string|null $exemptionReason     VAT exemption reason as text
      */
     private function addVatNode(
-        UXML $parent, string $name, string $category, ?float $rate,
-        ?string $exemptionReasonCode=null, ?string $exemptionReason=null
+        UXML $parent,
+        string $name,
+        string $category,
+        ?float $rate,
+        ?string $exemptionReasonCode = null,
+        ?string $exemptionReason = null
     ) {
         $xml = $parent->add($name);
 
@@ -350,7 +366,8 @@ class UblWriter extends AbstractWriter {
      * @param  Delivery|Party $source Source instance
      * @return UXML                   Postal address node
      */
-    private function addPostalAddressNode(UXML $parent, string $name, $source) {
+    private function addPostalAddressNode(UXML $parent, string $name, $source)
+    {
         $xml = $parent->add($name);
 
         // Street name
@@ -402,7 +419,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML  $parent Invoice element
      * @param Party $party  Party instance
      */
-    private function addSellerOrBuyerNode(UXML $parent, Party $party) {
+    private function addSellerOrBuyerNode(UXML $parent, Party $party)
+    {
         $xml = $parent->add('cac:Party');
 
         // Electronic address
@@ -471,7 +489,7 @@ class UblWriter extends AbstractWriter {
         // Contact point
         if ($party->hasContactInformation()) {
             $contactNode = $xml->add('cac:Contact');
-            
+
             $contactName = $party->getContactName();
             if ($contactName !== null) {
                 $contactNode->add('cbc:Name', $contactName);
@@ -495,7 +513,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML  $parent Invoice element
      * @param Party $party  Party instance
      */
-    private function addPayeeNode(UXML $parent, Party $party) {
+    private function addPayeeNode(UXML $parent, Party $party)
+    {
         $xml = $parent->add('cac:PayeeParty');
 
         // Additional identifiers
@@ -524,7 +543,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML     $parent   Invoice element
      * @param Delivery $delivery Delivery instance
      */
-    private function addDeliveryNode(UXML $parent, Delivery $delivery) {
+    private function addDeliveryNode(UXML $parent, Delivery $delivery)
+    {
         $xml = $parent->add('cac:Delivery');
 
         // BT-72: Actual delivery date
@@ -567,7 +587,8 @@ class UblWriter extends AbstractWriter {
      * @param Payment       $payment Payment instance
      * @param DateTime|null $dueDate Invoice due date (for credit note profile)
      */
-    private function addPaymentNodes(UXML $parent, Payment $payment, ?DateTime $dueDate) {
+    private function addPaymentNodes(UXML $parent, Payment $payment, ?DateTime $dueDate)
+    {
         $xml = $parent->add('cac:PaymentMeans');
 
         // BT-81: Payment means code
@@ -596,8 +617,10 @@ class UblWriter extends AbstractWriter {
             $this->addPaymentCardNode($xml, $card);
         }
 
-        // BG-17: Payment transfers
-        foreach ($payment->getTransfers() as $transfer) {
+        // BG-17: Payment transfer
+        $transfer = $payment->getTransfer();
+
+        if ($transfer !== null) {
             $this->addPaymentTransferNode($xml, $transfer);
         }
 
@@ -625,7 +648,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML $parent PaymentMeans element
      * @param Card $card   Card instance
      */
-    private function addPaymentCardNode(UXML $parent, Card $card) {
+    private function addPaymentCardNode(UXML $parent, Card $card)
+    {
         $xml = $parent->add('cac:CardAccount');
 
         // BT-87: Card PAN
@@ -653,7 +677,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML     $parent   PaymentMeans element
      * @param Transfer $transfer Transfer instance
      */
-    private function addPaymentTransferNode(UXML $parent, Transfer $transfer) {
+    private function addPaymentTransferNode(UXML $parent, Transfer $transfer)
+    {
         $xml = $parent->add('cac:PayeeFinancialAccount');
 
         // BT-84: Receiving account ID
@@ -681,7 +706,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML    $parent  PaymentMeans element
      * @param Mandate $mandate Mandate instance
      */
-    private function addPaymentMandateNode(UXML $parent, Mandate $mandate) {
+    private function addPaymentMandateNode(UXML $parent, Mandate $mandate)
+    {
         $xml = $parent->add('cac:PaymentMandate');
 
         // BT-89: Mandate reference
@@ -771,7 +797,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML          $parent Parent element
      * @param InvoiceTotals $totals Invoice totals
      */
-    private function addTaxTotalNodes(UXML $parent, InvoiceTotals $totals) {
+    private function addTaxTotalNodes(UXML $parent, InvoiceTotals $totals)
+    {
         $xml = $parent->add('cac:TaxTotal');
 
         // Add tax amount
@@ -810,7 +837,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML          $parent Parent element
      * @param InvoiceTotals $totals Invoice totals
      */
-    private function addDocumentTotalsNode(UXML $parent, InvoiceTotals $totals) {
+    private function addDocumentTotalsNode(UXML $parent, InvoiceTotals $totals)
+    {
         $xml = $parent->add('cac:LegalMonetaryTotal');
 
         // Build totals matrix
@@ -833,7 +861,7 @@ class UblWriter extends AbstractWriter {
         $totalsMatrix['cbc:PayableAmount'] = $totals->payableAmount;
 
         // Create and append XML nodes
-        foreach ($totalsMatrix as $field=>$amount) {
+        foreach ($totalsMatrix as $field => $amount) {
             $this->addAmountNode($xml, $field, $amount, $totals->currency);
         }
     }
@@ -995,7 +1023,8 @@ class UblWriter extends AbstractWriter {
      * @param UXML       $parent     Parent element
      * @param Attachment $attachment Attachment instance
      */
-    private function addAttachmentNode(UXML $parent, Attachment $attachment) {
+    private function addAttachmentNode(UXML $parent, Attachment $attachment)
+    {
         $xml = $parent->add('cac:AdditionalDocumentReference');
         $isInvoiceObjectReference = (!$attachment->hasExternalUrl() && !$attachment->hasContents());
 
